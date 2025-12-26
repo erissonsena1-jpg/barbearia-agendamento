@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barbearia Elite - Agendamento</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Montserrat', Arial, sans-serif; background: linear-gradient(135deg, #1a1a1a, #2d2d2d); color: #f0f0f0; min-height: 100vh; line-height: 1.6; }
+        header { background: #000000; padding: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        header h1 { font-size: 2.5rem; margin-bottom: 8px; }
+        .tabs { display: flex; justify-content: center; margin: 20px 0; }
+        .tab-btn { background: #333; color: #fff; border: none; padding: 12px 30px; font-size: 1.1rem; cursor: pointer; flex: 1; max-width: 300px; }
+        .tab-btn.active { background: #ffd700; color: #000; font-weight: bold; }
+        .tab-btn:first-child { border-radius: 8px 0 0 8px; }
+        .tab-btn:last-child { border-radius: 0 8px 8px 0; }
+        .container { max-width: 900px; margin: 0 auto 40px; padding: 0 20px; }
+        section { background: #1e1e1e; border-radius: 12px; padding: 25px; margin-bottom: 30px; box-shadow: 0 6px 15px rgba(0,0,0,0.4); display: none; }
+        section.active { display: block; }
+        h2, h3 { color: #ffd700; margin-bottom: 20px; text-align: center; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #ffd700; }
+        input, select { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #333; color: #fff; font-size: 1rem; margin-bottom: 15px; }
+        input:focus, select:focus { outline: 2px solid #ffd700; }
+        button { background: #ffd700; color: #000; font-weight: bold; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 1.1rem; width: 100%; margin-top: 10px; }
+        button:hover { background: #e6c200; }
+        ul { list-style: none; }
+        ul li { background: #2a2a2a; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        ul li strong { color: #ffd700; }
+        ul li button { width: auto; padding: 8px 16px; font-size: 0.9rem; background: #c0392b; margin-left: 10px; }
+        ul li button:hover { background: #e74c3c; }
+        footer { text-align: center; padding: 20px; color: #aaa; font-size: 0.9rem; }
+        #telaSenha { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1a1a1a, #2d2d2d); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
+        #telaSenha h1 { color: #ffd700; font-size: 2.5rem; margin-bottom: 30px; }
+        #telaSenha input { width: 320px; max-width: 90%; padding: 15px; border-radius: 8px; border: none; font-size: 1.1rem; }
+        #telaSenha button { width: 320px; max-width: 90%; margin: 20px 0; }
+        .servico-item { display: flex; justify-content: space-between; align-items: center; }
+        @media (max-width: 600px) {
+            header h1 { font-size: 2rem; }
+            .tab-btn { padding: 15px; font-size: 1rem; }
+            ul li { flex-direction: column; text-align: center; }
+            ul li button { margin: 10px 0 0; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>💈 Barbearia Benilson 💈</h1>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="abrirAba('cliente')">Área do Cliente</button>
+        <button class="tab-btn" onclick="abrirAba('barbeiro')">Área do Barbeiro</button>
+    </div>
+
+    <!-- ABA CLIENTE -->
+    <section id="cliente" class="active container">
+        <h2>Agendar Horário</h2>
+        <form id="formAgendamento">
+            <label for="nome">Seu Nome:</label>
+            <input type="text" id="nome" placeholder="Ex: João Silva" required>
+
+            <label for="servico">Serviço:</label>
+            <select id="servico" required>
+                <option value="">Selecione o serviço</option>
+            </select>
+
+            <label for="data">Data:</label>
+            <input type="date" id="data" required>
+
+            <label for="horario">Horário Disponível:</label>
+            <select id="horario" required>
+                <option value="">Selecione data primeiro</option>
+            </select>
+
+            <button type="submit">Agendar Horário</button>
+        </form>
+
+        <h2>Agendamentos do Dia</h2>
+        <ul id="listaAgendamentos"></ul>
+    </section>
+
+    <!-- TELA DE SENHA -->
+    <div id="telaSenha">
+        <h1>Área Restrita do Barbeiro</h1>
+        <p>Digite a senha para acessar:</p>
+        <input type="password" id="senhaInput" placeholder="Senha secreta" autocomplete="off">
+        <button onclick="verificarSenha()">Entrar</button>
+        <p id="erroSenha" style="color: #ff4444; margin-top: 20px; font-weight: bold;"></p>
+    </div>
+
+    <!-- ABA BARBEIRO -->
+    <section id="barbeiro" class="container">
+        <!-- Gerenciar Serviços -->
+        <h2>Gerenciar Serviços</h2>
+        <div>
+            <label for="novoServico">Nome do Serviço:</label>
+            <input type="text" id="novoServico" placeholder="Ex: Degradê na Tesoura">
+
+            <label for="precoServico">Preço (R$):</label>
+            <input type="number" id="precoServico" placeholder="50" min="0" step="5">
+
+            <button onclick="adicionarServico()">Adicionar Serviço</button>
+        </div>
+
+        <h3>Serviços Atuais</h3>
+        <ul id="listaServicos"></ul>
+
+        <!-- Adicionar Horários -->
+        <h2 style="margin-top: 40px;">Adicionar Horário Disponível</h2>
+        <label for="dia">Data:</label>
+        <input type="date" id="dia" required>
+
+        <label for="hora">Horário:</label>
+        <input type="time" id="hora" required>
+
+        <button onclick="adicionarHorario()">Adicionar Horário</button>
+
+        <!-- Agenda -->
+        <h2 style="margin-top: 40px;">Agenda do Dia</h2>
+        <label for="filtroData">Filtrar por data:</label>
+        <input type="date" id="filtroData">
+
+        <h3>Horários Disponíveis</h3>
+        <ul id="horariosDisponiveis"></ul>
+
+        <h3>Agendamentos Confirmados</h3>
+        <ul id="agendamentosConfirmados"></ul>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Barbearia Benilson - Sistema de Agendamento</p>
+    </footer>
+
+    <script>
+        const STORAGE_HORARIOS = "horariosDisponiveis";
+        const STORAGE_AGENDAMENTOS = "agendamentos";
+        const STORAGE_SERVICOS = "servicosBarbearia";
+        const SENHA_BARBEIRO = "barbeiro123"; // ← MUDE PARA SENHA FORTE!
+
+        function getHorariosDisponiveis() { return JSON.parse(localStorage.getItem(STORAGE_HORARIOS)) || []; }
+        function setHorariosDisponiveis(h) { localStorage.setItem(STORAGE_HORARIOS, JSON.stringify(h)); }
+        function getAgendamentos() { return JSON.parse(localStorage.getItem(STORAGE_AGENDAMENTOS)) || []; }
+        function setAgendamentos(a) { localStorage.setItem(STORAGE_AGENDAMENTOS, JSON.stringify(a)); }
+        function getServicos() { 
+            let servicos = JSON.parse(localStorage.getItem(STORAGE_SERVICOS));
+            if (!servicos || servicos.length === 0) {
+                servicos = [
+                    
+                ];
+                setServicos(servicos);
+            }
+            return servicos;
+        }
+        function setServicos(s) { localStorage.setItem(STORAGE_SERVICOS, JSON.stringify(s)); }
+
+        function formatarData(dataISO) {
+            if (!dataISO) return "";
+            const data = new Date(dataISO + "T00:00:00");
+            const op = { weekday: 'short', day: '2-digit', month: 'long', year: 'numeric' };
+            return data.toLocaleDateString('pt-BR', op).replace(',', '').replace(/^\w/, c => c.toUpperCase());
+        }
+        function formatarHorario(hora) { return hora.substring(0, 5); }
+
+        // Abas - CORRIGIDA
+        function abrirAba(aba) {
+            document.getElementById("cliente").classList.toggle("active", aba === "cliente");
+            document.getElementById("barbeiro").classList.toggle("active", aba === "barbeiro");
+
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            document.querySelector(`.tab-btn[onclick="abrirAba('${aba}')"]`).classList.add("active");
+
+            if (aba === "cliente") {
+                document.getElementById("barbeiro").style.display = "none"; // Força esconder
+                document.getElementById("telaSenha").style.display = "none";
+                atualizarListaHoje();
+                carregarServicosCliente();
+            } else if (aba === "barbeiro") {
+                document.getElementById("telaSenha").style.display = "flex";
+                document.getElementById("barbeiro").style.display = "none";
+            }
+        }
+
+        function verificarSenha() {
+            const senha = document.getElementById("senhaInput").value.trim();
+            if (senha === SENHA_BARBEIRO) {
+                document.getElementById("telaSenha").style.display = "none";
+                document.getElementById("barbeiro").style.display = "block";
+                iniciarBarbeiro();
+            } else {
+                document.getElementById("erroSenha").textContent = "Senha incorreta!";
+                document.getElementById("senhaInput").value = "";
+            }
+        }
+
+        // Gerenciar Serviços
+        function adicionarServico() {
+            const nome = document.getElementById("novoServico").value.trim();
+            const preco = document.getElementById("precoServico").value;
+
+            if (!nome || !preco || preco <= 0) {
+                alert("Preencha nome e preço válido!");
+                return;
+            }
+
+            let servicos = getServicos();
+            if (servicos.some(s => s.nome.toLowerCase() === nome.toLowerCase())) {
+                alert("Este serviço já existe!");
+                return;
+            }
+
+            servicos.push({ nome, preco: Number(preco) });
+            setServicos(servicos);
+            document.getElementById("novoServico").value = "";
+            document.getElementById("precoServico").value = "";
+            atualizarListaServicos();
+            alert("Serviço adicionado com sucesso!");
+        }
+
+        function removerServico(nome) {
+            if (!confirm(`Remover o serviço "${nome}"?`)) return;
+            let servicos = getServicos();
+            servicos = servicos.filter(s => s.nome !== nome);
+            setServicos(servicos);
+            atualizarListaServicos();
+            carregarServicosCliente();
+        }
+
+        function atualizarListaServicos() {
+            const ul = document.getElementById("listaServicos");
+            const servicos = getServicos();
+            ul.innerHTML = servicos.length === 0 ? "<li style='color:#aaa'>Nenhum serviço cadastrado</li>" : "";
+            servicos.forEach(s => {
+                const li = document.createElement("li");
+                li.className = "servico-item";
+                li.innerHTML = `
+                    <span><strong>${s.nome}</strong> - R$ ${s.preco}</span>
+                    <button onclick="removerServico('${s.nome.replace(/'/g, "\\'")}')">Remover</button>
+                `;
+                ul.appendChild(li);
+            });
+        }
+
+        function carregarServicosCliente() {
+            const select = document.getElementById("servico");
+            select.innerHTML = '<option value="">Selecione o serviço</option>';
+            getServicos().forEach(s => {
+                const opt = document.createElement("option");
+                opt.value = s.nome;
+                opt.textContent = `${s.nome} - R$ ${s.preco}`;
+                select.appendChild(opt);
+            });
+        }
+
+        // Barbeiro
+        function iniciarBarbeiro() {
+            const hoje = new Date().toISOString().split("T")[0];
+            document.getElementById("dia").min = hoje;
+            document.getElementById("dia").value = hoje;
+            document.getElementById("filtroData").min = hoje;
+            document.getElementById("filtroData").value = hoje;
+            document.getElementById("filtroData").addEventListener("change", atualizarAgenda);
+            atualizarListaServicos();
+            atualizarAgenda();
+        }
+
+        function adicionarHorario() {
+            const data = document.getElementById("dia").value;
+            const hora = document.getElementById("hora").value;
+            if (!data || !hora) return alert("Preencha data e horário!");
+            let horarios = getHorariosDisponiveis();
+            if (horarios.some(h => h.data === data && h.hora === hora)) return alert("Horário já existe!");
+            horarios.push({ data, hora });
+            setHorariosDisponiveis(horarios);
+            document.getElementById("hora").value = "";
+            atualizarAgenda();
+            alert("Horário adicionado! ✅");
+        }
+
+        window.removerHorario = function(data, hora) {
+            if (!confirm("Remover horário?")) return;
+            let horarios = getHorariosDisponiveis();
+            horarios = horarios.filter(h => !(h.data === data && h.hora === hora));
+            setHorariosDisponiveis(horarios);
+            atualizarAgenda();
+        };
+
+        window.cancelarAgendamento = function(id) {
+            if (!confirm("Cancelar agendamento?")) return;
+            let agendamentos = getAgendamentos();
+            agendamentos = agendamentos.filter(a => a.id !== id);
+            setAgendamentos(agendamentos);
+            atualizarAgenda();
+        };
+
+        function atualizarAgenda() {
+            const filtro = document.getElementById("filtroData").value || new Date().toISOString().split("T")[0];
+            const horarios = getHorariosDisponiveis().filter(h => h.data === filtro);
+            const agendamentos = getAgendamentos().filter(a => a.horario.data === filtro);
+
+            const ulDisp = document.getElementById("horariosDisponiveis");
+            ulDisp.innerHTML = horarios.length === 0 ? "<li style='color:#aaa'>Nenhum horário disponível</li>" : "";
+            horarios.sort((a,b) => a.hora.localeCompare(b.hora)).forEach(h => {
+                const li = document.createElement("li");
+                li.innerHTML = `<span><strong>${formatarHorario(h.hora)}</strong> - Disponível</span>
+                                <button onclick="removerHorario('${h.data}','${h.hora}')">Remover</button>`;
+                ulDisp.appendChild(li);
+            });
+
+            const ulConf = document.getElementById("agendamentosConfirmados");
+            ulConf.innerHTML = agendamentos.length === 0 ? "<li style='color:#aaa'>Nenhum agendamento</li>" : "";
+            agendamentos.sort((a,b) => a.horario.hora.localeCompare(b.horario.hora)).forEach(a => {
+                const li = document.createElement("li");
+                li.innerHTML = `<div><strong>${a.nome}</strong> - ${a.servico}<br><small>${formatarHorario(a.horario.hora)}</small></div>
+                                <button onclick="cancelarAgendamento('${a.id}')">Cancelar</button>`;
+                ulConf.appendChild(li);
+            });
+        }
+
+        // Cliente
+        function atualizarListaHoje() {
+            const hoje = new Date().toISOString().split("T")[0];
+            const agendamentosHoje = getAgendamentos().filter(a => a.horario.data === hoje);
+            const lista = document.getElementById("listaAgendamentos");
+            lista.innerHTML = agendamentosHoje.length === 0 ? "<li>Nenhum agendamento hoje</li>" : "";
+            agendamentosHoje.sort((a,b) => a.horario.hora.localeCompare(b.horario.hora)).forEach(a => {
+                const li = document.createElement("li");
+                li.innerHTML = `<strong>${a.nome}</strong> - ${a.servico} às ${formatarHorario(a.horario.hora)}`;
+                lista.appendChild(li);
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const dataInput = document.getElementById("data");
+            const horarioSelect = document.getElementById("horario");
+            const form = document.getElementById("formAgendamento");
+
+            const hoje = new Date().toISOString().split("T")[0];
+            dataInput.min = hoje;
+
+            carregarServicosCliente();
+
+            dataInput.addEventListener("change", () => {
+                const data = dataInput.value;
+                horarioSelect.innerHTML = '<option value="">Selecione um horário</option>';
+                if (!data) return horarioSelect.disabled = true;
+
+                let horarios = getHorariosDisponiveis().filter(h => h.data === data);
+                const ocupados = getAgendamentos().filter(a => a.horario.data === data).map(a => a.horario.hora);
+                horarios = horarios.filter(h => !ocupados.includes(h.hora));
+
+                horarios.sort((a,b) => a.hora.localeCompare(b.hora));
+                if (horarios.length === 0) {
+                    horarioSelect.innerHTML += '<option value="">Nenhum horário disponível</option>';
+                    horarioSelect.disabled = true;
+                } else {
+                    horarios.forEach(h => {
+                        const opt = document.createElement("option");
+                        opt.value = h.hora;
+                        opt.textContent = formatarHorario(h.hora);
+                        horarioSelect.appendChild(opt);
+                    });
+                    horarioSelect.disabled = false;
+                }
+            });
+
+            form.addEventListener("submit", e => {
+                e.preventDefault();
+                const nome = document.getElementById("nome").value.trim();
+                const servico = document.getElementById("servico").value;
+                const data = dataInput.value;
+                const hora = horarioSelect.value;
+
+                if (!nome || !servico || !data || !hora) return alert("Preencha todos os campos!");
+
+                if (getAgendamentos().some(a => a.horario.data === data && a.horario.hora === hora)) {
+                    alert("Horário já agendado! Atualize.");
+                    dataInput.dispatchEvent(new Event("change"));
+                    return;
+                }
+
+                const novo = {
+                    id: Date.now().toString(),
+                    nome, servico,
+                    horario: { data, hora }
+                };
+                const agendamentos = getAgendamentos();
+                agendamentos.push(novo);
+                setAgendamentos(agendamentos);
+
+                alert(`Agendado com sucesso!\n${nome} - ${servico}\n${formatarData(data)} às ${hora} 💈`);
+                form.reset();
+                horarioSelect.innerHTML = '<option value="">Selecione data primeiro</option>';
+                horarioSelect.disabled = true;
+                atualizarListaHoje();
+            });
+
+            atualizarListaHoje();
+
+            // Esconde tudo do barbeiro no início
+            document.getElementById("barbeiro").style.display = "none";
+            document.getElementById("telaSenha").style.display = "none";
+        });
+    </script>
+</body>
+</html>
